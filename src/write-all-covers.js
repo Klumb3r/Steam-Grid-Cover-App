@@ -4,12 +4,13 @@ const fetch = require('node-fetch');
 const request = require('request').defaults({ encoding: null });
 const SGDB = require('steamgriddb');
 
-const steamGridAPI = { Authorization: 'Bearer XXXXXXXXXXXXXXXXXXXXX' };
+const steamGridAPI = { Authorization: 'Bearer X' };
 
 var gridDir;
 var STEAMAPIKEY;
 var STEAMID;
 var coverMode;
+var overWrite;
 var delay = 500;
 
 fetch(
@@ -44,28 +45,31 @@ function writeCovers() {
             .then(grids => grids.json())
             .then(grids => grids.data)
             .then(async grids => {
-              if (grids === undefined) {
-                logProgressError(
-                  "It appears that Steamgriddb API is down, so cover can't be fetched. Try running the app again later"
-                );
-              } else if (grids.length === 0 || coverMode === 'animated') {
-                if (!(await getSteamGridAnimatedCover(app.name, app.appid))) {
-                  if (!(await getCoverFromKennettNyGitHub(app.name, app.appid))) {
-                    if (!(await getCoverFromCamporterGitHub(app.name, app.appid))) {
-                      createPlaceholderCover(app);
+              if (!(overWrite === false && checkCoverFile(app.appid))) {
+                if (grids === undefined) {
+                  logProgressError(
+                    "It appears that Steamgriddb API is down, so cover can't be fetched. Try running the app again later"
+                  );
+                } else if (grids.length === 0 || coverMode === 'animated') {
+                  if (!(await getSteamGridAnimatedCover(app.name, app.appid))) {
+                    if (!(await getCoverFromKennettNyGitHub(app.name, app.appid))) {
+                      if (!(await getCoverFromCamporterGitHub(app.name, app.appid))) {
+                        createPlaceholderCover(app);
+                      }
                     }
                   }
+                } else if (
+                  !(await getSteamGridStaticCover(
+                    app.name,
+                    app.appid,
+                    grids[0].url,
+                    grids[0].author.name
+                  ))
+                ) {
+                  logProgressError('Error downloading cover from steamgriddb ' + app.name);
                 }
-              } else if (
-                !(await getSteamGridStaticCover(
-                  app.name,
-                  app.appid,
-                  grids[0].url,
-                  grids[0].author.name
-                ))
-              ) {
-                logProgressError('Error downloading cover from steamgriddb ' + app.name);
-              }
+              } else
+                logProgressError('Custom Cover already exists. Not overwriting cover ' + app.name);
             });
         }, pause);
         pause += delay;
@@ -124,6 +128,7 @@ function setInputs() {
   }
   coverMode =
     document.getElementById('cover-mode').value === 'animated' ? 'animated' : 'white-logo';
+  overWrite = document.getElementById('overwrite').value === 'overwrite' ? true : false;
   delay = parseInt(document.getElementById('delay').value);
   if (!error) document.getElementById('start-button').disabled = true;
   return error;
@@ -144,6 +149,10 @@ function downloadFont() {
     }
   );
   return error;
+}
+
+function checkCoverFile(appid) {
+  return fs.existsSync(gridDir + appid + 'p.png');
 }
 
 /**

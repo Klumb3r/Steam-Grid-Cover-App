@@ -5,8 +5,8 @@ let win;
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 500,
-    height: 900,
+    width: 1500,
+    height: 1000,
     resizable: false,
     webPreferences: {
       nodeIntegration: true
@@ -17,7 +17,7 @@ function createWindow() {
   win.setMenu(null);
 
   // Open the DevTools.
-  //win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   win.on('closed', () => {
     win = null;
