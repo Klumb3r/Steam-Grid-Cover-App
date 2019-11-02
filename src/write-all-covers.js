@@ -4,13 +4,14 @@ const fetch = require('node-fetch');
 const request = require('request').defaults({ encoding: null });
 const SGDB = require('steamgriddb');
 
-const steamGridAPI = { Authorization: 'Bearer X' };
+const steamGridAPI = { Authorization: 'Bearer x' };
 
 var gridDir;
 var STEAMAPIKEY;
 var STEAMID;
 var coverMode;
 var overWrite;
+var noGM;
 var delay = 500;
 
 fetch(
@@ -45,7 +46,12 @@ function writeCovers() {
             .then(grids => grids.json())
             .then(grids => grids.data)
             .then(async grids => {
-              if (!(overWrite === false && checkCoverFile(app.appid))) {
+              if (
+                !(
+                  overWrite === false &&
+                  (checkCoverFile(app.appid) || (await checkCoverSteam(app.appid)))
+                )
+              ) {
                 if (grids === undefined) {
                   logProgressError(
                     "It appears that Steamgriddb API is down, so cover can't be fetched. Try running the app again later"
@@ -54,7 +60,8 @@ function writeCovers() {
                   if (!(await getSteamGridAnimatedCover(app.name, app.appid))) {
                     if (!(await getCoverFromKennettNyGitHub(app.name, app.appid))) {
                       if (!(await getCoverFromCamporterGitHub(app.name, app.appid))) {
-                        createPlaceholderCover(app);
+                        if (!noGM) createPlaceholderCover(app);
+                        else logProgressError('Not creating missing cover ' + app.name);
                       }
                     }
                   }
@@ -68,7 +75,11 @@ function writeCovers() {
                 ) {
                   logProgressError('Error downloading cover from steamgriddb ' + app.name);
                 }
-              } else
+              } else if (await checkCoverSteam(app.appid))
+                logProgressError(
+                  'New Steam provided cover already exists. Not overwriting cover ' + app.name
+                );
+              else
                 logProgressError('Custom Cover already exists. Not overwriting cover ' + app.name);
             });
         }, pause);
@@ -127,7 +138,15 @@ function setInputs() {
     }
   }
   coverMode =
-    document.getElementById('cover-mode').value === 'animated' ? 'animated' : 'white-logo';
+    document.getElementById('cover-mode').value === 'animated' ||
+    document.getElementById('cover-mode').value === 'animated-noGM'
+      ? 'animated'
+      : 'white-logo';
+  noGM =
+    document.getElementById('cover-mode').value === 'animated-noGM' ||
+    document.getElementById('cover-mode').value === 'white-logo-noGM'
+      ? true
+      : false;
   overWrite = document.getElementById('overwrite').value === 'overwrite' ? true : false;
   delay = parseInt(document.getElementById('delay').value);
   if (!error) document.getElementById('start-button').disabled = true;
@@ -153,6 +172,19 @@ function downloadFont() {
 
 function checkCoverFile(appid) {
   return fs.existsSync(gridDir + appid + 'p.png');
+}
+
+function checkCoverSteam(appid) {
+  return new Promise(resolve => {
+    request(
+      'https://steamcdn-a.akamaihd.net/steam/apps/' + appid + '/library_600x900_2x.jpg',
+      (err, res, image) => {
+        if (err || res.statusCode === 404) {
+          resolve(false);
+        } else if (image) resolve(true);
+      }
+    );
+  });
 }
 
 /**

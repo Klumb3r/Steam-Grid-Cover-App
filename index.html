@@ -45,8 +45,10 @@
       </ul>
     </div>
     <select id="cover-mode">
-      <option value="white-logo">Prefer Uniform Design</option>
+      <option value="white-logo">Prefer Uniform Design (Create missing covers)</option>
+      <option value="white-logo-noGM">Prefer Uniform Design (Don't create missing covers)</option>
       <option value="animated">Prefer Animated Covers (May be inconsistent)</option>
+      <option value="animated-noGM">Prefer Animated Covers (Don't create missing covers)</option>
     </select>
     <p>If you are getting errors or have a slow PC, try lowering download speed</p>
     <select id="delay">
@@ -56,10 +58,10 @@
       <option value="2000">1 Per 2 Seconds</option>
       <option value="3000">1 Per 3 Seconds</option>
     </select>
-     <p>Use this option if you don't want to replace any covers you've alreadys set</p>
+     <p>Use this option if you don't want to replace existing covers (both Steam and custom)</p>
     <select id="overwrite">
-      <option value="overwrite">Overwrite Existing Custom Covers</option>
-      <option value="no-overwrite">Don't Overwrite Existing Custom Covers</option>
+      <option value="overwrite">Overwrite Existing Covers</option>
+      <option value="no-overwrite">Don't Overwrite Existing Covers</option>
     </select>
 
     <button id="start-button" onclick="writeCovers()">START</button>
