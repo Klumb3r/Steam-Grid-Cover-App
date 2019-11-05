@@ -15,7 +15,7 @@ var noGM;
 var delay = 500;
 
 fetch(
-  'https://www.steamgriddb.com/api/v2/grids/steam/400?styles=white_logo&dimensions=600x900&342x482',
+  'https://www.steamgriddb.com/api/v2/grids/steam/400?styles=alternate&dimensions=600x900',
   {
     headers: steamGridAPI
   }
@@ -40,7 +40,7 @@ function writeCovers() {
           fetch(
             'https://www.steamgriddb.com/api/v2/grids/steam/' +
               app.appid +
-              '?styles=white_logo&dimensions=600x900,342x482',
+              '?styles=alternate&dimensions=600x900',
             { headers: steamGridAPI }
           )
             .then(grids => grids.json())
